@@ -1,0 +1,20 @@
+# 软件杯AI助手平台 - 依赖包列表
+# 用于学习路径规划、简历解析、技能培训等模块
+
+# Web框架和UI组件
+streamlit>=1.44.0
+streamlit-extras>=0.6.0
+
+# AI和API调用
+openai>=1.0.0
+
+# 文档处理相关
+python-docx>=0.8.11
+PyPDF2>=3.0.0
+docx2txt>=0.8
+
+# 图像处理
+Pillow>=9.0.0
+
+# 其他工具包（保留requests以便向后兼容）
+requests>=2.32.3 
