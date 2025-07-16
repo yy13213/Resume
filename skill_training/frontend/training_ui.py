@@ -50,7 +50,6 @@ class TrainingUI:
                         
                         # 书籍信息
                         st.markdown(f"**{book['title']}**")
-                        st.markdown(f"📄 {book['pages']} 页")
                         
                         # 选择按钮
                         if st.button(f"📖 阅读", key=f"read_{i}", use_container_width=True):
@@ -75,9 +74,7 @@ class TrainingUI:
                             input=pdf_file.read(),
                             width=700,
                             height=600,
-                            annotations=True,  # 启用注释功能
                             pages_vertical_spacing=2,  # 页面间距
-                            annotation_outline_size=1,  # 注释边框大小
                         )
                 else:
                     st.error("PDF文件不存在，请重新选择书籍")
