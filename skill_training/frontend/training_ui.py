@@ -2,6 +2,7 @@ import streamlit as st
 import base64
 import sys
 import os
+from streamlit_pdf_viewer import pdf_viewer
 
 # 添加项目根目录到Python路径
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -28,46 +29,65 @@ class TrainingUI:
             st.success("书籍上传成功！")
             
         return uploaded_books
+        
+    def render_book_list(self):
+        """渲染书籍列表"""
+        st.subheader("📚 已有书籍")
+        
+        books = self.manager.get_available_books()
+        
+        if books:
+            cols = st.columns(3)
+            for i, book in enumerate(books):
+                with cols[i % 3]:
+                    with st.container():
+                        # 显示书籍封面
+                        if book['cover']:
+                            st.image(book['cover'], use_container_width=True)
+                        else:
+                            st.image("https://via.placeholder.com/200x300/cccccc/666666?text=No+Cover", 
+                                   use_container_width=True)
+                        
+                        # 书籍信息
+                        st.markdown(f"**{book['title']}**")
+                        st.markdown(f"📄 {book['pages']} 页")
+                        
+                        # 选择按钮
+                        if st.button(f"📖 阅读", key=f"read_{i}", use_container_width=True):
+                            st.session_state["selected_pdf"] = book['pdf_path']
+                            st.rerun()
+        else:
+            st.info("暂无可用书籍，请先上传一些书籍。")
     
-    def render_book_grid(self, books):
-        """渲染书籍网格显示"""
-        st.subheader("📖 我的书籍库")
-        
-        # 存储已选书籍的pdf路径
-        selected_pdf = st.session_state.get("selected_pdf", None)
-        
-        # 显示所有书籍封面
-        cols = st.columns(len(books))
-        
-        for i, book in enumerate(books):
-            with cols[i]:
-                # 尝试加载图片
-                image = self.manager.load_image(book["cover"])
-                if image:
-                    st.image(image, caption=book["title"], use_container_width=True)
-                else:
-                    st.write(f"📄 {book['title']}")
-                    st.write("(封面加载失败)")
-                
-                # 选择书籍按钮
-                if st.button(f"选择 {book['title']}", key=f"select_{i}"):
-                    st.session_state.selected_pdf = book["pdf"]
-                    st.success(f"已选择《{book['title']}》")
-
     def render_pdf_viewer(self):
-        """渲染PDF查看器"""
+        """渲染PDF查看器 - 使用streamlit-pdf-viewer组件"""
         selected_pdf = st.session_state.get("selected_pdf", None)
         
         if selected_pdf:
             st.subheader(f"📖 正在阅读: {selected_pdf.split('/')[-1]}")
             
-            # 生成PDF查看链接
-            pdf_link = self.manager.get_pdf_link(selected_pdf)
-            if pdf_link:
-                st.markdown(f'<iframe src="{pdf_link}" width="100%" height="600px"></iframe>', 
-                           unsafe_allow_html=True)
-            else:
-                st.error("PDF文件不存在或无法加载")
+            try:
+                # 检查文件是否存在
+                if os.path.exists(selected_pdf):
+                    # 使用streamlit-pdf-viewer组件渲染PDF
+                    with open(selected_pdf, "rb") as pdf_file:
+                        pdf_viewer(
+                            input=pdf_file.read(),
+                            width=700,
+                            height=600,
+                            annotations=True,  # 启用注释功能
+                            pages_vertical_spacing=2,  # 页面间距
+                            annotation_outline_size=1,  # 注释边框大小
+                        )
+                else:
+                    st.error("PDF文件不存在，请重新选择书籍")
+                    # 清除无效的选择
+                    if "selected_pdf" in st.session_state:
+                        del st.session_state["selected_pdf"]
+                        
+            except Exception as e:
+                st.error(f"PDF文件加载失败: {str(e)}")
+                st.info("请确保PDF文件格式正确且未损坏")
         else:
             st.info("请从上方选择一本书籍开始学习")
 
@@ -82,14 +102,8 @@ class TrainingUI:
             # 上传区域
             uploaded_books = self.render_file_upload_section()
             
-            # 获取所有书籍
-            all_books = self.manager.get_all_books(uploaded_books)
-            
-            # 书籍网格显示
-            if all_books:
-                self.render_book_grid(all_books)
-            else:
-                st.info("暂无书籍，请先上传书籍")
+            # 书籍列表显示
+            self.render_book_list()
         
         with tab2:
             self.render_pdf_viewer()

@@ -4,6 +4,7 @@
 # Web框架和UI组件
 streamlit>=1.44.0
 streamlit-extras>=0.6.0
+streamlit-pdf-viewer>=0.0.15
 
 # AI和API调用
 openai>=1.0.0
