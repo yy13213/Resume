@@ -32,7 +32,7 @@ class TrainingUI:
         
     def render_book_list(self):
         """渲染书籍列表"""
-        st.subheader("📚 已有书籍")
+        st.subheader("📚 已有书籍（选择书籍后，请点击上方在线阅读）")
         
         books = self.manager.get_available_books()
         
